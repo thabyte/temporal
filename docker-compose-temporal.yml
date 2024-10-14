@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  temporal:
+    image: temporalio/server
+    container_name: temporal_container
+    ports:
+      - "7233:7233"
+    environment:
+      - TEMPORAL_DB=cassandra
+    volumes:
+      - ./temporal.yaml:/etc/temporal/config.yaml  # Mount the config file
+      - ./wait-for-cassandra.sh:/wait-for-cassandra.sh  # Mount the wait script
+    depends_on:
+      - cassandra  # Depends on Cassandra
+    command: ["/bin/sh", "-c", "/wait-for-cassandra.sh cassandra_container temporal-server start"]
+    platform: linux/amd64

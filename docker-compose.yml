@@ -2,13 +2,45 @@ version: '3.8'
 
 services:
   mongodb:
-    image: mongo:latest  # Pull the latest MongoDB image from Docker Hub
+    image: mongo:4.4.6  # Use a version that supports ARM64
     container_name: mongodb_container
     ports:
-      - "27017:27017"  # Expose MongoDB port to the host machine
+      - "27017:27017"
     environment:
-      MONGO_INITDB_ROOT_USERNAME: admin  # Set the root username
-      MONGO_INITDB_ROOT_PASSWORD: password123  # Set the root password
-      MONGO_INITDB_DATABASE: mydatabase  # The name of the database to create initially
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password123
+      MONGO_INITDB_DATABASE: mydatabase
     volumes:
-      - ./data/db:/data/db  # Persist data using a volume for MongoDB storage
+      - ./data/db:/data/db
+    platform: linux/arm64  # Ensure it's running on ARM64 platform
+
+  temporal:
+    image: temporalio/server
+    container_name: temporal_container
+    ports:
+      - "7233:7233"
+    environment:
+      - TEMPORAL_DB=cassandra
+    volumes:
+      - ./temporal.yaml:/etc/temporal/config.yaml  # Mount the config file
+      - ./wait-for-cassandra.sh:/wait-for-cassandra.sh  # Mount the wait script
+    depends_on:
+      - cassandra  # Depends on Cassandra
+    command: [ "/bin/sh", "-c", "/wait-for-cassandra.sh cassandra_container temporal-server start" ]
+    platform: linux/amd64
+
+
+  cassandra:
+    image: cassandra:latest
+    container_name: cassandra_container
+    ports:
+      - "9042:9042"
+    environment:
+      CASSANDRA_CLUSTER_NAME: "TemporalCluster"
+      CASSANDRA_PASSWORD_SEEDER: "true"
+    volumes:
+      - cassandra_data:/var/lib/cassandra
+    platform: linux/arm64
+
+volumes:
+  cassandra_data:
