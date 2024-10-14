@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:latest  # Pull the latest MongoDB image from Docker Hub
+    container_name: mongodb_container
+    ports:
+      - "27017:27017"  # Expose MongoDB port to the host machine
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin  # Set the root username
+      MONGO_INITDB_ROOT_PASSWORD: password123  # Set the root password
+      MONGO_INITDB_DATABASE: mydatabase  # The name of the database to create initially
+    volumes:
+      - ./data/db:/data/db  # Persist data using a volume for MongoDB storage
