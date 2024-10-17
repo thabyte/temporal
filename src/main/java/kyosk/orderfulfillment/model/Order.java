@@ -29,5 +29,11 @@ public class Order {
     }
 
     public Order(String customerId, List<String> items, Double totalPrice) {
+        this.customerId = customerId;
+        this.items = items;
+        this.totalPrice = totalPrice;
+    }
+
+    public Order() {
     }
 }
