@@ -2,13 +2,33 @@ version: '3.8'
 
 services:
   mongodb:
-    image: mongo:latest  # Pull the latest MongoDB image from Docker Hub
+    image: mongo:4.4.6  # Use a version that supports ARM64
     container_name: mongodb_container
     ports:
-      - "27017:27017"  # Expose MongoDB port to the host machine
+      - "27017:27017"
     environment:
-      MONGO_INITDB_ROOT_USERNAME: admin  # Set the root username
-      MONGO_INITDB_ROOT_PASSWORD: password123  # Set the root password
-      MONGO_INITDB_DATABASE: mydatabase  # The name of the database to create initially
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password123
+      MONGO_INITDB_DATABASE: mydatabase
     volumes:
-      - ./data/db:/data/db  # Persist data using a volume for MongoDB storage
+      - ./data/db:/data/db
+    platform: linux/arm64
+
+  temporal:
+    # https://hub.docker.com/r/temporalio/server/tags
+    image: temporalio/server:1.21.5.0
+    container_name: temporal_container
+    restart: on-failure
+    user: "0:0" # running as root to avoid permission issues with writing to /tmp/sqlite/db
+    entrypoint:
+      - temporal
+      - server
+      - start-dev
+      - --namespace=default
+      - --db-filename=/tmp/sqlite/db
+      - --ip=0.0.0.0
+    tmpfs:
+      - /tmp/sqlite
+    ports:
+      - "7233:7233"
+      - "8233:8233"
